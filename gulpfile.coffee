@@ -27,9 +27,9 @@ gulp.task 'server', ->
     console.log 'App has quit'
   .on 'restart', (files) ->
     console.log "App restarted due to: #{files}"
+  gulp.watch ['./server/**/*.coffee','./test/*.coffee'], ['lint', 'mocha']
 
 gulp.task 'build', ['lint', 'mocha']
 
 gulp.task 'default', ['build']
 
-mochaWatcher = gulp.watch ['./server/**/*.coffee','./test/*.coffee'], ['lint', 'mocha']
