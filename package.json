@@ -5,6 +5,9 @@
   "scripts": {
     "start": "coffee ./server/bin/www.coffee"
   },
+  "engines": {
+    "node": "0.10.x"
+  },
   "dependencies": {
     "body-parser": "~1.0.0",
     "coffee-script": "^1.7.1",
