@@ -1,9 +1,14 @@
 language: node_js
 node_js:
 - '0.10'
-
 before_install:
-  - npm install -g gulp
-
+- npm install -g gulp
 script:
-  - gulp build --require coffee-script/register
+- gulp build --require coffee-script/register
+deploy:
+  provider: heroku
+  api_key:
+    secure: ZaRTdyKIdi4BMvzIP659vB/aZakkhP3b+OC87S6nZLUW6t0nja71OWmTjXHz19KNqpN1UFbwU5WkG8aSn30ZshxX6Rfa2Onq1WIsthkS2RLsXc9bFFHL4wIwfSMnxXDj7TgJayuS8m2/wvZVayC5mFfbW1uEcWOhi6+EawlWf4k=
+  app: young-cliffs-7804
+  on:
+    repo: pgremo/container
