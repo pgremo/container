@@ -16,7 +16,7 @@ gulp.task 'mocha',() ->
   gulp.src ['./test/*.coffee']
   .pipe mocha(reporter: 'spec').on 'error', onError
 
-gulp.task 'server', ->
+gulp.task 'server', ['build'],  ->
   nodemon script: './server/bin/www.coffee'
   .on 'start', () ->
     console.log """
