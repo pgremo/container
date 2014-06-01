@@ -28,7 +28,7 @@ Array::chunk = (size) ->
   this[x..x + size] for x in [0..this.length] by size
 
 exports.load = (props) ->
-  assets = Promise.all [types, client.fetch 'char:AssetList', props]
+  assets = Promise.all [types, client.fetch 'corp:AssetList', props]
   .spread (types, assets) ->
     named = {}
     recur = (items) ->
@@ -36,14 +36,14 @@ exports.load = (props) ->
         do (value) ->
           type = types[value.typeID]
           value.typeName = value.itemName = type?.typeName
-          if value.singleton is "1" and (type.groupID in ["12", "340", "448", "649"] or type.categoryID is "6")
+          if value.singleton is "1" and (type.groupID in ["12", "340", "365", "448", "649"] or type.categoryID is "6")
             named[value.itemID] = value
           if value.contents?
             value.contents = recur value.contents
           value
     items = recur assets.assets
     chunks = for x in Object.keys(named).chunk(250)
-      client.fetch 'char:Locations', _.assign {}, props, {IDs: x.join(',')}
+      client.fetch 'corp:Locations', _.assign {}, props, {IDs: x.join(',')}
     Promise.all chunks
     .then (results) ->
       results.reduce (seed, x) ->

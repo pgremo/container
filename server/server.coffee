@@ -23,7 +23,6 @@ app.use express.static path.join __dirname, 'app'
 app.use '/', routes
 
 app.use (err, req, res, next) ->
-  console.log err
   return next() if err.status isnt 404
   res.status 404
   res.send err.message || 'Not Found'
