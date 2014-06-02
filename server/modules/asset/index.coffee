@@ -4,20 +4,14 @@ _ = require 'lodash'
 fs = require 'fs'
 client = new neow.EveClient()
 
-loadFile = (file) ->
-  new Promise (resolve, reject) ->
-    fs.readFile file, 'utf8', (err, data) ->
-      if err?
-        reject err
-      else
-        try
-          resolve JSON.parse data
-        catch error
-          reject error
-
-locations = loadFile './server/modules/asset/locations.json'
-stations = loadFile './server/modules/asset/stations.json'
-types = loadFile './server/modules/asset/types.json'
+Promise.promisify = (func, thisObject) ->
+  return () ->
+    args = Array.prototype.slice.call arguments
+    return new Promise (resolve, reject) ->
+      args.push (err, result) ->
+        if err? then reject err
+        else resolve result
+      func.apply thisObject or null, args
 
 Promise::spread = (resolve, reject) ->
   this.then (result) ->
@@ -27,31 +21,42 @@ Promise::spread = (resolve, reject) ->
 Array::chunk = (size) ->
   this[x..x + size] for x in [0..this.length] by size
 
+loadFile = (file) ->
+  Promise.promisify(fs.readFile)(file, 'utf8')
+  .then (result) -> JSON.parse result
+
+locations = loadFile './server/modules/asset/locations.json'
+stations = loadFile './server/modules/asset/stations.json'
+types = loadFile './server/modules/asset/types.json'
+
 exports.load = (props) ->
   assets = Promise.all [types, client.fetch 'corp:AssetList', props]
   .spread (types, assets) ->
-    named = {}
-    recur = (items) ->
+    walk = (items, func) ->
       for key, value of items
         do (value) ->
-          type = types[value.typeID]
-          value.typeName = value.itemName = type?.typeName
-          if value.singleton is "1" and (type.groupID in ["12", "340", "365", "448", "649"] or type.categoryID is "6")
-            named[value.itemID] = value
+          func value
           if value.contents?
-            value.contents = recur value.contents
+            value.contents = walk value.contents, func
           value
-    items = recur assets.assets
-    chunks = for x in Object.keys(named).chunk(250)
-      client.fetch 'corp:Locations', _.assign {}, props, {IDs: x.join(',')}
+
+    named = []
+    items = walk assets.assets, (value) ->
+      type = types[value.typeID]
+      value.typeName = value.itemName = type?.typeName
+      if value.singleton is "1" and (type.groupID in ["12", "340", "365", "448", "649"] or type.categoryID is "6")
+        named.push value
+
+    chunks = for x in named.chunk 250
+      client.fetch 'corp:Locations', _.assign {}, props, {IDs: x.map((x) -> x.itemID).join(',')}
     Promise.all chunks
     .then (results) ->
       results.reduce (seed, x) ->
         _.assign seed, x.locations
       , {}
     .then (locations) ->
-      for itemID, location of locations
-        named[itemID].itemName = location.itemName
+      for item in named
+        item.itemName = locations[item.itemID].itemName
       items
 
   conquerables = client.fetch 'eve:ConquerableStationList'
