@@ -2,15 +2,12 @@
   "name": "container",
   "version": "0.0.1",
   "private": true,
-  "scripts": {
-    "start": "coffee ./server/bin/www.coffee"
-  },
+  "main": "server/bin/www.js",
   "engines": {
-    "node": "0.10.x"
+    "node": "0.11.x"
   },
   "dependencies": {
     "body-parser": "~1.2.0",
-    "coffee-script": "^1.7.1",
     "cookie-parser": "~1.1.0",
     "debug": "~0.8.1",
     "es6-shim": "^0.11.0",
@@ -22,9 +19,10 @@
     "static-favicon": "~1.0.2"
   },
   "devDependencies": {
+    "coffee-script": "^1.7.1",
     "chai": "~1.9.1",
     "chai-webdriver": "~0.9.0",
-    "gulp": "~3.6.1",
+    "gulp": "^3.7.0",
     "gulp-coffeelint": "~0.3.3",
     "gulp-mocha": "~0.4.1",
     "gulp-nodemon": "^1.0.3",
