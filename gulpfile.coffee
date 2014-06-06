@@ -17,11 +17,7 @@ gulp.task 'mocha',() ->
   .pipe mocha(reporter: 'spec').on 'error', onError
 
 gulp.task 'server', ['build'],  ->
-  nodemon
-    script: 'server/bin/www.js'
-    env:
-      NODE_ENV: 'development'
-    nodeArgs: ['--debug', '--harmony']
+  nodemon script: './server/bin/www.coffee'
   .on 'start', () ->
     console.log """
         Starting up context, serving on [localhost:#{process.env.PORT or 3000}]
@@ -31,7 +27,7 @@ gulp.task 'server', ['build'],  ->
     console.log 'App has quit'
   .on 'restart', (files) ->
     console.log "App restarted due to: #{files}"
-  gulp.watch ['./server/**/*.coffee','./server/**/*.js','./test/*.coffee'], ['lint', 'mocha']
+  gulp.watch ['./server/**/*.coffee','./test/*.coffee'], ['lint', 'mocha']
 
 gulp.task 'build', ['lint', 'mocha']
 

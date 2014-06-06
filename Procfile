@@ -1,1 +1,1 @@
-web: node --harmony server/bin/www.js
+web: coffee server/bin/www.coffee
