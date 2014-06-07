@@ -17,7 +17,10 @@ gulp.task 'mocha',() ->
   .pipe mocha(reporter: 'spec').on 'error', onError
 
 gulp.task 'server', ['build'],  ->
-  nodemon script: './server/bin/www.coffee'
+  nodemon
+    script: './server/bin/www.coffee'
+    env:
+      NODE_ENV: 'development'
   .on 'start', () ->
     console.log """
         Starting up context, serving on [localhost:#{process.env.PORT or 3000}]

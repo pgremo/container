@@ -4,14 +4,14 @@ _ = require 'lodash'
 fs = require 'fs'
 client = new neow.EveClient()
 
-Promise.promisify = (func, thisObject) ->
+Promise.promisify = (func, self) ->
   return () ->
-    args = Array.prototype.slice.call arguments
+    args = Array::slice.call arguments
     return new Promise (resolve, reject) ->
       args.push (err, result) ->
         if err? then reject err
         else resolve result
-      func.apply thisObject or null, args
+      func.apply self or null, args
 
 Promise::spread = (resolve, reject) ->
   this.then (result) ->
@@ -48,7 +48,7 @@ exports.load = (props) ->
         named.push value
 
     chunks = for x in named.chunk 250
-      client.fetch 'corp:Locations', _.assign {}, props, {IDs: x.map((x) -> x.itemID).join(',')}
+      client.fetch 'corp:Locations', _.assign {IDs: x.map((x) -> x.itemID).join(',')}, props
     Promise.all chunks
     .then (results) ->
       results.reduce (seed, x) ->
