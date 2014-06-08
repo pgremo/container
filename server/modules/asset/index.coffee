@@ -1,37 +1,24 @@
-require 'es6-shim'
+Promise = require 'bluebird'
 neow = require 'neow'
 _ = require 'lodash'
 fs = require 'fs'
+chunk = require 'chunk'
 client = new neow.EveClient()
 
-Promise.promisify = (func, self) ->
-  return () ->
-    args = Array::slice.call arguments
-    return new Promise (resolve, reject) ->
-      args.push (err, result) ->
-        if err? then reject err
-        else resolve result
-      func.apply self or null, args
-
-Promise::spread = (resolve, reject) ->
-  this.then (result) ->
-    resolve result...
-  , reject
-
-Array::chunk = (size) ->
-  this[x..x + size] for x in [0..this.length] by size
+Promise.promisifyAll fs
 
 loadFile = (file) ->
-  Promise.promisify(fs.readFile)(file, 'utf8')
-  .then (result) -> JSON.parse result
+  fs.readFileAsync file, 'utf8'
+  .then JSON.parse
 
 locations = loadFile './server/modules/asset/locations.json'
 stations = loadFile './server/modules/asset/stations.json'
 types = loadFile './server/modules/asset/types.json'
 
 exports.load = (props) ->
-  assets = Promise.all [types, client.fetch 'corp:AssetList', props]
-  .spread (types, assets) ->
+  raw = client.fetch 'corp:AssetList', props
+  .then (result) -> result.assets
+  assets = Promise.join types, raw,  (types, raw) ->
     walk = (items, func) ->
       for key, value of items
         do (value) ->
@@ -41,37 +28,34 @@ exports.load = (props) ->
           value
 
     named = []
-    items = walk assets.assets, (value) ->
+    items = walk raw, (value) ->
       type = types[value.typeID]
       value.typeName = value.itemName = type?.typeName
       if value.singleton is "1" and (type.groupID in ["12", "340", "365", "448", "649"] or type.categoryID is "6")
         named.push value
 
-    chunks = for x in named.chunk 250
+    chunks = for x in chunk named, 250
       client.fetch 'corp:Locations', _.assign {IDs: x.map((x) -> x.itemID).join(',')}, props
-    Promise.all chunks
-    .then (results) ->
-      results.reduce (seed, x) ->
-        _.assign seed, x.locations
-      , {}
+    Promise.reduce chunks, (seed, x) ->
+      _.assign seed, x.locations
+    , {}
     .then (locations) ->
       for item in named
         item.itemName = locations[item.itemID].itemName
-      items
+    .return items
 
   conquerables = client.fetch 'eve:ConquerableStationList'
   .then (result) -> result.outposts
-  Promise.all [conquerables, stations, locations, assets]
-  .spread (conquerables, stations, locations, assets) ->
+  Promise.join conquerables, stations, locations, assets,  (conquerables, stations, locations, assets) ->
     for item in assets
       locationID = parseInt item.locationID
       item.locationName = switch
         when 66000000 < locationID < 66014933 then stations[(locationID - 6000001).toString()]
         when 66014934 < locationID < 67999999 then conquerables[(locationID - 6000000).toString()].stationName
-        when 60014861 < locationID < 60014928 then conquerables[locationID.toString()].stationName
-        when 60000000 < locationID < 61000000 then stations[locationID.toString()]
-        when locationID >= 61000000 then conquerables[locationID.toString()].stationName
-        else locations[locationID.toString()]
+        when 60014861 < locationID < 60014928 then conquerables[item.locationID].stationName
+        when 60000000 < locationID < 61000000 then stations[item.locationID]
+        when locationID >= 61000000 then conquerables[item.locationID].stationName
+        else locations[item.locationID]
       item
   .then (result) ->
     _.groupBy result, (x) -> x.locationName
