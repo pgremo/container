@@ -15,7 +15,7 @@ locations = loadFile './server/modules/asset/locations.json'
 stations = loadFile './server/modules/asset/stations.json'
 types = loadFile './server/modules/asset/types.json'
 
-exports.load = (props) ->
+exports.get = (props) ->
   raw = client.fetch 'corp:AssetList', props
   .then (result) -> result.assets
   assets = Promise.join types, raw,  (types, raw) ->
@@ -30,8 +30,9 @@ exports.load = (props) ->
     named = []
     items = walk raw, (value) ->
       type = types[value.typeID]
-      value.typeName = value.itemName = type?.typeName
-      if value.singleton is "1" and (type.groupID in ["12", "340", "365", "448", "649"] or type.categoryID is "6")
+      value.typeName = value.itemName = type.typeName
+      value.groupID = type.groupID
+      if value.singleton is '1' and (type.groupID in ['12', '340', '365', '448', '649'] or type.categoryID is '6')
         named.push value
 
     chunks = for x in chunk named, 250
@@ -57,5 +58,3 @@ exports.load = (props) ->
         when locationID >= 61000000 then conquerables[item.locationID].stationName
         else locations[item.locationID]
       item
-  .then (result) ->
-    _.groupBy result, (x) -> x.locationName
