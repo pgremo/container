@@ -1,5 +1,6 @@
 neow = require 'neow'
 _ = require 'lodash'
+
 client = new neow.EveCentralClient()
 
 exports.get = (props) ->

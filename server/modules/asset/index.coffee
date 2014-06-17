@@ -1,24 +1,15 @@
 Promise = require 'bluebird'
 neow = require 'neow'
 _ = require 'lodash'
-fs = require 'fs'
 chunk = require 'chunk'
+data = require '../data'
+
 client = new neow.EveClient()
-
-Promise.promisifyAll fs
-
-loadFile = (file) ->
-  fs.readFileAsync file, 'utf8'
-  .then JSON.parse
-
-locations = loadFile './server/modules/asset/locations.json'
-stations = loadFile './server/modules/asset/stations.json'
-types = loadFile './server/modules/asset/types.json'
 
 exports.get = (props) ->
   raw = client.fetch 'corp:AssetList', props
   .then (result) -> result.assets
-  assets = Promise.join types, raw,  (types, raw) ->
+  assets = Promise.join data.types, raw,  (types, raw) ->
     walk = (items, func) ->
       for key, value of items
         do (value) ->
@@ -47,7 +38,7 @@ exports.get = (props) ->
 
   conquerables = client.fetch 'eve:ConquerableStationList'
   .then (result) -> result.outposts
-  Promise.join conquerables, stations, locations, assets,  (conquerables, stations, locations, assets) ->
+  Promise.join conquerables, data.stations, data.locations, assets,  (conquerables, stations, locations, assets) ->
     for item in assets
       locationID = parseInt item.locationID
       item.locationName = switch
