@@ -13,8 +13,7 @@ filter = (items, func, acc = []) ->
   for value in items
     do (value) ->
       acc.push value if func value
-      if value.contents?
-        acc.concat filter value.contents, func, acc
+      acc.concat filter value.contents, func, acc if value.contents?
   return acc
 
 router.get '/', (req, res) ->
@@ -38,7 +37,7 @@ router.get '/:keyID/:vCode/:characterID', (req, res, next) ->
     items = x.contents ? []
     x.sum = _.reduce items, ((seed, y) -> seed + y.total), 0
     x
-  .then (result) -> res.send result
+  .then (result) -> res.render 'payout', containers: result
   .catch (err) -> next err
 
 module.exports = router
