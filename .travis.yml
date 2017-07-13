@@ -1,6 +1,6 @@
 language: node_js
 node_js:
-- 'node'
+- node
 before_install:
 - npm install -g gulp
 script:
@@ -8,7 +8,7 @@ script:
 deploy:
   provider: heroku
   api_key:
-    secure: ZaRTdyKIdi4BMvzIP659vB/aZakkhP3b+OC87S6nZLUW6t0nja71OWmTjXHz19KNqpN1UFbwU5WkG8aSn30ZshxX6Rfa2Onq1WIsthkS2RLsXc9bFFHL4wIwfSMnxXDj7TgJayuS8m2/wvZVayC5mFfbW1uEcWOhi6+EawlWf4k=
+    secure: o9ZQhAVkjZt/ncJ4SRWJXoNNvBb4zhvCu+QtxmUQd6/vwH/wzDTQJyaw6Ke2Ek9DYETdMIU9sq1BSh0DPYb8s8thirByYTg7MHyaslvBRhohDLAx/d1f/IFXEq8SPU+lsgWazjE3AQ58VLT6LxakugHODBEJ5YwD/wdGACIQk9o=
   app: young-cliffs-7804
   on:
     repo: pgremo/container
