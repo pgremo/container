@@ -1,18 +1,18 @@
 express = require 'express'
 path = require 'path'
-favicon = require 'static-favicon'
+#favicon = require 'serve-favicon'
 cookieParser = require 'cookie-parser'
 bodyParser = require 'body-parser'
 logger = require 'morgan'
-jade = require 'jade'
+pug = require 'pug'
 routes = require './routes'
 
 app = express()
 
 app.set 'views', path.join __dirname, 'views'
-app.set 'view engine', 'jade'
+app.set 'view engine', 'pug'
 
-app.use favicon()
+#app.use favicon()
 app.use logger 'dev'
 app.use bodyParser.json()
 app.use bodyParser.urlencoded()
